@@ -1,0 +1,1097 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Controle Financeiro</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --panel:#0f1a2e;
+      --panel2:#0c162a;
+      --muted:#9bb0d1;
+      --text:#eaf1ff;
+      --line:rgba(255,255,255,.08);
+      --shadow: 0 12px 30px rgba(0,0,0,.35);
+      --radius: 16px;
+      --radius2: 22px;
+
+      --in:#5eead4;
+      --out:#fb7185;
+      --warn:#fbbf24;
+      --accent:#60a5fa;
+      --ok:#34d399;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial;
+      background: radial-gradient(1100px 600px at 15% 10%, rgba(96,165,250,.25), transparent 60%),
+                  radial-gradient(900px 500px at 85% 10%, rgba(94,234,212,.18), transparent 60%),
+                  radial-gradient(800px 600px at 50% 100%, rgba(251,113,133,.14), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding:22px;
+    }
+    .app{
+      max-width:1180px;
+      margin:0 auto;
+      display:grid;
+      gap:16px;
+      grid-template-columns: 380px 1fr;
+      align-items:start;
+    }
+    @media (max-width: 980px){
+      .app{ grid-template-columns: 1fr; }
+    }
+
+    .topbar{
+      grid-column: 1 / -1;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      padding:16px 18px;
+      border:1px solid var(--line);
+      border-radius: var(--radius2);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 14px;
+      backdrop-filter: blur(10px);
+      z-index: 10;
+    }
+    .brand{
+      display:flex; gap:12px; align-items:center;
+      min-width: 220px;
+    }
+    .logo{
+      width:42px;height:42px;border-radius:14px;
+      background: radial-gradient(circle at 30% 30%, rgba(94,234,212,.9), rgba(96,165,250,.55) 45%, rgba(251,113,133,.25) 75%, rgba(0,0,0,.0) 100%);
+      border:1px solid rgba(255,255,255,.18);
+      box-shadow: 0 10px 25px rgba(0,0,0,.3);
+    }
+    .brand h1{
+      font-size:16px; margin:0;
+      letter-spacing:.2px;
+    }
+    .brand p{
+      margin:2px 0 0; font-size:12px; color:var(--muted);
+    }
+    .top-actions{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      border:1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius: 14px;
+      cursor:pointer;
+      font-weight:600;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      transition: transform .06s ease, background .15s ease, border-color .15s ease;
+      user-select:none;
+    }
+    .btn:hover{ background: rgba(255,255,255,.08); border-color: rgba(255,255,255,.16); }
+    .btn:active{ transform: translateY(1px); }
+    .btn.primary{
+      background: linear-gradient(180deg, rgba(96,165,250,.35), rgba(96,165,250,.12));
+      border-color: rgba(96,165,250,.35);
+    }
+    .btn.danger{
+      background: linear-gradient(180deg, rgba(251,113,133,.25), rgba(251,113,133,.10));
+      border-color: rgba(251,113,133,.25);
+    }
+    .btn.small{ padding:8px 10px; border-radius: 12px; font-size:12.5px; }
+    .btn.ghost{ background: transparent; }
+    .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+    .card{
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border-radius: var(--radius2);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:16px 16px 12px;
+      display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+    }
+    .card .hd h2{
+      margin:0; font-size:14px; letter-spacing:.2px;
+    }
+    .card .hd .sub{
+      margin-top:4px; font-size:12px; color:var(--muted);
+    }
+    .card .bd{ padding:14px 16px 16px; }
+
+    .grid{
+      display:grid; gap:12px;
+    }
+    .grid.cols3{ grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 1100px){
+      .grid.cols3{ grid-template-columns: 1fr; }
+    }
+
+    .stat{
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      border-radius: 18px;
+      padding:12px 12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      min-height:70px;
+    }
+    .stat .k{
+      font-size:12px; color:var(--muted);
+      margin-bottom:4px;
+    }
+    .stat .v{
+      font-size:18px; font-weight:800;
+      letter-spacing:.2px;
+    }
+    .pill{
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      font-size:12px;
+      color:var(--muted);
+      white-space:nowrap;
+    }
+    .pill.in{ border-color: rgba(94,234,212,.25); color: rgba(94,234,212,.95); background: rgba(94,234,212,.08); }
+    .pill.out{ border-color: rgba(251,113,133,.25); color: rgba(251,113,133,.95); background: rgba(251,113,133,.08); }
+    .pill.warn{ border-color: rgba(251,191,36,.25); color: rgba(251,191,36,.95); background: rgba(251,191,36,.08); }
+
+    label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
+    input, select, textarea{
+      width:100%;
+      background: rgba(0,0,0,.25);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      padding: 11px 12px;
+      outline:none;
+      transition: border-color .15s ease, background .15s ease;
+    }
+    input:focus, select:focus, textarea:focus{
+      border-color: rgba(96,165,250,.55);
+      background: rgba(0,0,0,.30);
+    }
+    textarea{ resize: vertical; min-height: 70px; }
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:10px;
+    }
+    @media (max-width: 980px){
+      .row{ grid-template-columns: 1fr; }
+    }
+
+    .seg{
+      display:flex;
+      border:1px solid rgba(255,255,255,.10);
+      border-radius: 14px;
+      overflow:hidden;
+      background: rgba(0,0,0,.18);
+    }
+    .seg button{
+      flex:1;
+      padding:10px 12px;
+      border:0;
+      background: transparent;
+      color: var(--muted);
+      cursor:pointer;
+      font-weight:700;
+      transition: background .15s ease, color .15s ease;
+    }
+    .seg button.active{
+      background: rgba(96,165,250,.22);
+      color: var(--text);
+    }
+
+    .filters{
+      display:grid;
+      grid-template-columns: 1.2fr .9fr .9fr;
+      gap:10px;
+      align-items:end;
+    }
+    @media (max-width: 980px){
+      .filters{ grid-template-columns: 1fr; }
+    }
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.35;
+      margin-top:10px;
+    }
+
+    .table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 16px;
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+    }
+    .table th, .table td{
+      padding:10px 10px;
+      border-bottom:1px solid rgba(255,255,255,.06);
+      text-align:left;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+    .table th{ color:var(--muted); font-size:12px; font-weight:700; }
+    .table tr:last-child td{ border-bottom:0; }
+    .mono{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+    .right{ text-align:right; }
+    .actions{
+      display:flex; gap:8px; justify-content:flex-end; align-items:center;
+    }
+
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:5px 9px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(255,255,255,.04);
+      color: var(--muted);
+      white-space:nowrap;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:50%;
+      background: rgba(96,165,250,.8);
+    }
+
+    .toast{
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      max-width: 360px;
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(10,18,32,.75);
+      backdrop-filter: blur(10px);
+      box-shadow: var(--shadow);
+      color: var(--text);
+      display:none;
+      z-index: 50;
+    }
+    .toast.show{ display:block; animation: pop .2s ease; }
+    @keyframes pop{ from{ transform: translateY(6px); opacity:0 } to{ transform: translateY(0); opacity:1 } }
+
+    .chartWrap{
+      border:1px solid rgba(255,255,255,.08);
+      background: rgba(0,0,0,.14);
+      border-radius: 18px;
+      padding: 12px;
+    }
+    canvas{ width:100%; height:220px; }
+    .mini{
+      display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <div class="topbar">
+      <div class="brand">
+        <div class="logo"></div>
+        <div>
+          <h1>Controle Financeiro</h1>
+          <p>Entradas, saídas, categorias, gráficos e exportação</p>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button class="btn small ghost" id="btnExport">⤓ Exportar JSON</button>
+        <button class="btn small ghost" id="btnImport">⤒ Importar JSON</button>
+        <input type="file" id="fileImport" accept="application/json" hidden />
+        <button class="btn small danger" id="btnReset">🗑 Limpar tudo</button>
+      </div>
+    </div>
+
+    <!-- COLUNA ESQUERDA: FORM -->
+    <div class="card">
+      <div class="hd">
+        <div>
+          <h2 id="formTitle">Novo lançamento</h2>
+          <div class="sub">Cadastre uma entrada ou saída</div>
+        </div>
+        <span class="pill" id="editingPill" style="display:none;">editando</span>
+      </div>
+      <div class="bd">
+        <div class="seg" role="tablist" aria-label="Tipo">
+          <button type="button" id="segIn" class="active">Entrada</button>
+          <button type="button" id="segOut">Saída</button>
+        </div>
+
+        <label>Descrição</label>
+        <input id="desc" placeholder="Ex: Salário / Mercado / Uber" />
+
+        <div class="row">
+          <div>
+            <label>Valor</label>
+            <input id="amount" inputmode="decimal" placeholder="0,00" />
+          </div>
+          <div>
+            <label>Data</label>
+            <input id="date" type="date" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label>Categoria</label>
+            <select id="category"></select>
+          </div>
+          <div>
+            <label>Método</label>
+            <select id="method">
+              <option>Dinheiro</option>
+              <option>Pix</option>
+              <option>Débito</option>
+              <option>Crédito</option>
+              <option>Boleto</option>
+              <option>Transferência</option>
+              <option>Outro</option>
+            </select>
+          </div>
+        </div>
+
+        <label>Observações (opcional)</label>
+        <textarea id="notes" placeholder="Ex: parcela, recorrência, etc."></textarea>
+
+        <div style="display:flex; gap:10px; margin-top:14px;">
+          <button class="btn primary" id="btnSave" style="flex:1;">💾 Salvar</button>
+          <button class="btn" id="btnCancel" style="display:none;">Cancelar</button>
+        </div>
+
+        <div class="hint">
+          Dica: use o campo de busca e filtros do lado direito para encontrar lançamentos rapidamente.
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA DIREITA: DASH + LISTA -->
+    <div class="card">
+      <div class="hd">
+        <div>
+          <h2>Dashboard</h2>
+          <div class="sub">Resumo do período filtrado</div>
+        </div>
+        <span class="pill warn" id="periodPill">período: todos</span>
+      </div>
+
+      <div class="bd">
+        <div class="grid cols3">
+          <div class="stat">
+            <div>
+              <div class="k">Entradas</div>
+              <div class="v mono" id="sumIn">R$ 0,00</div>
+            </div>
+            <span class="pill in">+ IN</span>
+          </div>
+          <div class="stat">
+            <div>
+              <div class="k">Saídas</div>
+              <div class="v mono" id="sumOut">R$ 0,00</div>
+            </div>
+            <span class="pill out">- OUT</span>
+          </div>
+          <div class="stat">
+            <div>
+              <div class="k">Saldo</div>
+              <div class="v mono" id="sumNet">R$ 0,00</div>
+            </div>
+            <span class="pill" id="netPill">NET</span>
+          </div>
+        </div>
+
+        <div style="margin-top:12px;" class="chartWrap">
+          <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:8px;">
+            <div>
+              <div style="font-weight:800; font-size:13px;">Gastos por categoria</div>
+              <div style="color:var(--muted); font-size:12px;">Somente saídas do período</div>
+            </div>
+            <span class="pill" id="chartPill">0 categorias</span>
+          </div>
+          <canvas id="chart" width="900" height="260"></canvas>
+          <div class="mini" id="legend"></div>
+        </div>
+
+        <div style="margin-top:14px;">
+          <div class="filters">
+            <div>
+              <label>Buscar</label>
+              <input id="q" placeholder="Digite descrição, categoria, método..." />
+            </div>
+            <div>
+              <label>De</label>
+              <input id="from" type="date" />
+            </div>
+            <div>
+              <label>Até</label>
+              <input id="to" type="date" />
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label>Filtrar por categoria</label>
+              <select id="fCategory">
+                <option value="">Todas</option>
+              </select>
+            </div>
+            <div>
+              <label>Ordenar</label>
+              <select id="sort">
+                <option value="date_desc">Data ↓</option>
+                <option value="date_asc">Data ↑</option>
+                <option value="amount_desc">Valor ↓</option>
+                <option value="amount_asc">Valor ↑</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:10px;">
+            <button class="btn small" id="btnThisMonth">📅 Este mês</button>
+            <button class="btn small" id="btnLast30">🕒 Últimos 30 dias</button>
+            <button class="btn small" id="btnClearFilters">🧹 Limpar filtros</button>
+          </div>
+        </div>
+
+        <div style="margin-top:14px; overflow:auto;">
+          <table class="table" id="tbl">
+            <thead>
+              <tr>
+                <th style="width:110px;">Data</th>
+                <th>Descrição</th>
+                <th style="width:140px;">Categoria</th>
+                <th style="width:110px;">Método</th>
+                <th class="right" style="width:130px;">Valor</th>
+                <th class="right" style="width:140px;">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+        </div>
+
+        <div class="hint" id="emptyHint" style="display:none;">
+          Nenhum lançamento encontrado com os filtros atuais.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // ===== Utils =====
+    const brl = new Intl.NumberFormat('pt-BR', { style:'currency', currency:'BRL' });
+    const $ = (s) => document.querySelector(s);
+
+    function uid(){
+      return Math.random().toString(16).slice(2) + Date.now().toString(16);
+    }
+    function todayISO(){
+      const d = new Date();
+      const pad = n => String(n).padStart(2,'0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+    function parseMoneyBR(v){
+      // aceita "1.234,56" ou "1234.56" etc.
+      if(!v) return NaN;
+      const s = String(v).trim()
+        .replace(/\s/g,'')
+        .replace(/\./g,'')
+        .replace(',', '.');
+      const n = Number(s);
+      return Number.isFinite(n) ? n : NaN;
+    }
+    function toast(msg){
+      const t = $('#toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toast._tm);
+      toast._tm = setTimeout(()=>t.classList.remove('show'), 2200);
+    }
+
+    // ===== Data =====
+    const STORAGE_KEY = 'finance_app_v1';
+    const DEFAULT_CATEGORIES = [
+      { name:'Salário', color:'#60a5fa' },
+      { name:'Freelance', color:'#5eead4' },
+      { name:'Alimentação', color:'#f59e0b' },
+      { name:'Mercado', color:'#fbbf24' },
+      { name:'Transporte', color:'#a78bfa' },
+      { name:'Moradia', color:'#fb7185' },
+      { name:'Lazer', color:'#34d399' },
+      { name:'Saúde', color:'#22c55e' },
+      { name:'Educação', color:'#38bdf8' },
+      { name:'Outros', color:'#94a3b8' },
+    ];
+
+    /** txn
+     * { id, type:'in'|'out', desc, amount:number, date:'YYYY-MM-DD', category, method, notes }
+     */
+    let state = load() || {
+      categories: DEFAULT_CATEGORIES,
+      txns: []
+    };
+
+    // Form state
+    let formType = 'in';
+    let editingId = null;
+
+    // ===== Elements =====
+    const segIn = $('#segIn');
+    const segOut = $('#segOut');
+    const formTitle = $('#formTitle');
+    const editingPill = $('#editingPill');
+    const btnCancel = $('#btnCancel');
+
+    const elDesc = $('#desc');
+    const elAmount = $('#amount');
+    const elDate = $('#date');
+    const elCategory = $('#category');
+    const elMethod = $('#method');
+    const elNotes = $('#notes');
+    const btnSave = $('#btnSave');
+
+    const sumIn = $('#sumIn');
+    const sumOut = $('#sumOut');
+    const sumNet = $('#sumNet');
+    const netPill = $('#netPill');
+
+    const q = $('#q');
+    const from = $('#from');
+    const to = $('#to');
+    const fCategory = $('#fCategory');
+    const sort = $('#sort');
+
+    const btnThisMonth = $('#btnThisMonth');
+    const btnLast30 = $('#btnLast30');
+    const btnClearFilters = $('#btnClearFilters');
+
+    const rows = $('#rows');
+    const emptyHint = $('#emptyHint');
+
+    const periodPill = $('#periodPill');
+    const chartPill = $('#chartPill');
+    const legend = $('#legend');
+
+    const btnExport = $('#btnExport');
+    const btnImport = $('#btnImport');
+    const fileImport = $('#fileImport');
+    const btnReset = $('#btnReset');
+
+    const canvas = $('#chart');
+    const ctx = canvas.getContext('2d');
+
+    // ===== Init =====
+    elDate.value = todayISO();
+    hydrateCategories();
+    wire();
+    render();
+
+    function wire(){
+      segIn.addEventListener('click', ()=> setType('in'));
+      segOut.addEventListener('click', ()=> setType('out'));
+
+      btnSave.addEventListener('click', onSave);
+      btnCancel.addEventListener('click', resetForm);
+
+      [q, from, to, fCategory, sort].forEach(el => el.addEventListener('input', render));
+      [fCategory, sort].forEach(el => el.addEventListener('change', render));
+
+      btnThisMonth.addEventListener('click', ()=>{
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = d.getMonth();
+        const first = new Date(y, m, 1);
+        const last = new Date(y, m+1, 0);
+        from.value = iso(first);
+        to.value = iso(last);
+        render();
+      });
+
+      btnLast30.addEventListener('click', ()=>{
+        const d = new Date();
+        const a = new Date(d.getTime() - 29*24*60*60*1000);
+        from.value = iso(a);
+        to.value = iso(d);
+        render();
+      });
+
+      btnClearFilters.addEventListener('click', ()=>{
+        q.value = '';
+        from.value = '';
+        to.value = '';
+        fCategory.value = '';
+        sort.value = 'date_desc';
+        render();
+      });
+
+      btnExport.addEventListener('click', exportJSON);
+      btnImport.addEventListener('click', ()=> fileImport.click());
+      fileImport.addEventListener('change', importJSON);
+
+      btnReset.addEventListener('click', ()=>{
+        if(confirm('Tem certeza que deseja apagar tudo?')){
+          state = { categories: DEFAULT_CATEGORIES, txns: [] };
+          save();
+          hydrateCategories();
+          resetForm();
+          render();
+          toast('Dados apagados.');
+        }
+      });
+
+      // Mask simples para valor (não perfeito, mas ajuda)
+      elAmount.addEventListener('input', ()=>{
+        const v = elAmount.value.replace(/[^\d,\.]/g,'');
+        elAmount.value = v;
+      });
+    }
+
+    function setType(t){
+      formType = t;
+      segIn.classList.toggle('active', t==='in');
+      segOut.classList.toggle('active', t==='out');
+    }
+
+    function hydrateCategories(){
+      // selects: form + filter
+      elCategory.innerHTML = '';
+      fCategory.innerHTML = '<option value="">Todas</option>';
+
+      state.categories.forEach(c=>{
+        const opt1 = document.createElement('option');
+        opt1.value = c.name;
+        opt1.textContent = c.name;
+        elCategory.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = c.name;
+        opt2.textContent = c.name;
+        fCategory.appendChild(opt2);
+      });
+
+      // default
+      if(!elCategory.value) elCategory.value = state.categories[0]?.name || 'Outros';
+    }
+
+    function onSave(){
+      const desc = elDesc.value.trim();
+      const amount = parseMoneyBR(elAmount.value);
+      const dateV = elDate.value;
+      const category = elCategory.value;
+      const method = elMethod.value;
+      const notes = elNotes.value.trim();
+
+      if(!desc){
+        toast('Informe a descrição.');
+        elDesc.focus();
+        return;
+      }
+      if(!Number.isFinite(amount) || amount <= 0){
+        toast('Informe um valor válido (> 0).');
+        elAmount.focus();
+        return;
+      }
+      if(!dateV){
+        toast('Informe a data.');
+        elDate.focus();
+        return;
+      }
+
+      const txn = {
+        id: editingId || uid(),
+        type: formType,
+        desc,
+        amount,
+        date: dateV,
+        category,
+        method,
+        notes
+      };
+
+      if(editingId){
+        const idx = state.txns.findIndex(t=>t.id===editingId);
+        if(idx >= 0) state.txns[idx] = txn;
+        toast('Lançamento atualizado.');
+      } else {
+        state.txns.unshift(txn);
+        toast('Lançamento salvo.');
+      }
+
+      save();
+      resetForm();
+      render();
+    }
+
+    function editTxn(id){
+      const t = state.txns.find(x=>x.id===id);
+      if(!t) return;
+      editingId = id;
+      setType(t.type);
+      elDesc.value = t.desc;
+      elAmount.value = (t.amount.toFixed(2)).replace('.', ',');
+      elDate.value = t.date;
+      elCategory.value = t.category;
+      elMethod.value = t.method;
+      elNotes.value = t.notes || '';
+
+      formTitle.textContent = 'Editar lançamento';
+      editingPill.style.display = 'inline-flex';
+      btnCancel.style.display = 'inline-flex';
+      $('#btnSave').textContent = '✅ Atualizar';
+      toast('Editando...');
+      window.scrollTo({ top: 0, behavior:'smooth' });
+    }
+
+    function deleteTxn(id){
+      const t = state.txns.find(x=>x.id===id);
+      if(!t) return;
+      if(confirm(`Excluir "${t.desc}" (${brl.format(t.amount)})?`)){
+        state.txns = state.txns.filter(x=>x.id!==id);
+        save();
+        render();
+        toast('Excluído.');
+        if(editingId===id) resetForm();
+      }
+    }
+
+    function resetForm(){
+      editingId = null;
+      setType('in');
+      elDesc.value = '';
+      elAmount.value = '';
+      elDate.value = todayISO();
+      elCategory.value = state.categories[0]?.name || 'Outros';
+      elMethod.value = 'Dinheiro';
+      elNotes.value = '';
+
+      formTitle.textContent = 'Novo lançamento';
+      editingPill.style.display = 'none';
+      btnCancel.style.display = 'none';
+      $('#btnSave').textContent = '💾 Salvar';
+    }
+
+    // ===== Filters + Render =====
+    function getFiltered(){
+      const term = q.value.trim().toLowerCase();
+      const fcat = fCategory.value;
+      const fromV = from.value;
+      const toV = to.value;
+      const s = sort.value;
+
+      let list = [...state.txns];
+
+      if(fromV){
+        list = list.filter(t => t.date >= fromV);
+      }
+      if(toV){
+        list = list.filter(t => t.date <= toV);
+      }
+      if(fcat){
+        list = list.filter(t => t.category === fcat);
+      }
+      if(term){
+        list = list.filter(t=>{
+          const hay = `${t.desc} ${t.category} ${t.method} ${t.notes||''}`.toLowerCase();
+          return hay.includes(term);
+        });
+      }
+
+      // sort
+      const cmp = {
+        date_desc: (a,b)=> b.date.localeCompare(a.date),
+        date_asc: (a,b)=> a.date.localeCompare(b.date),
+        amount_desc: (a,b)=> b.amount - a.amount,
+        amount_asc: (a,b)=> a.amount - b.amount
+      }[s] || ((a,b)=> b.date.localeCompare(a.date));
+
+      list.sort(cmp);
+      return list;
+    }
+
+    function render(){
+      const list = getFiltered();
+      renderPill();
+      renderTable(list);
+      renderStats(list);
+      renderChart(list);
+    }
+
+    function renderPill(){
+      const a = from.value;
+      const b = to.value;
+      if(a || b){
+        periodPill.textContent = `período: ${a || '...'} → ${b || '...'}`;
+      } else {
+        periodPill.textContent = 'período: todos';
+      }
+    }
+
+    function renderTable(list){
+      rows.innerHTML = '';
+      emptyHint.style.display = list.length ? 'none' : 'block';
+
+      for(const t of list){
+        const tr = document.createElement('tr');
+
+        const d = td(t.date);
+        const desc = td(
+          `<div style="font-weight:800;">${escapeHtml(t.desc)}</div>
+           <div style="margin-top:3px;">
+             <span class="tag"><span class="dot" style="background:${catColor(t.category)}"></span>${escapeHtml(t.category)}</span>
+             <span class="tag">${escapeHtml(t.method)}</span>
+             <span class="tag ${t.type==='in' ? 'in' : 'out'}">${t.type==='in' ? 'Entrada' : 'Saída'}</span>
+           </div>
+          `, true);
+
+        const cat = td(escapeHtml(t.category));
+        const met = td(escapeHtml(t.method));
+        const val = td(`<span class="mono" style="font-weight:900; color:${t.type==='in'?'rgba(94,234,212,.95)':'rgba(251,113,133,.95)'}">${brl.format(t.amount)}</span>`, true);
+        val.classList.add('right');
+
+        const act = td('', true);
+        act.classList.add('right');
+        act.innerHTML = `
+          <div class="actions">
+            <button class="btn small" data-edit="${t.id}">✏️</button>
+            <button class="btn small danger" data-del="${t.id}">🗑</button>
+          </div>
+        `;
+
+        tr.appendChild(d);
+        tr.appendChild(desc);
+        tr.appendChild(cat);
+        tr.appendChild(met);
+        tr.appendChild(val);
+        tr.appendChild(act);
+
+        rows.appendChild(tr);
+      }
+
+      // wire row buttons
+      rows.querySelectorAll('[data-edit]').forEach(b=>{
+        b.addEventListener('click', ()=> editTxn(b.getAttribute('data-edit')));
+      });
+      rows.querySelectorAll('[data-del]').forEach(b=>{
+        b.addEventListener('click', ()=> deleteTxn(b.getAttribute('data-del')));
+      });
+    }
+
+    function renderStats(list){
+      let _in = 0, _out = 0;
+      for(const t of list){
+        if(t.type==='in') _in += t.amount;
+        else _out += t.amount;
+      }
+      const net = _in - _out;
+
+      sumIn.textContent = brl.format(_in);
+      sumOut.textContent = brl.format(_out);
+      sumNet.textContent = brl.format(net);
+
+      if(net > 0){
+        netPill.textContent = 'positivo';
+        netPill.className = 'pill in';
+      } else if(net < 0){
+        netPill.textContent = 'negativo';
+        netPill.className = 'pill out';
+      } else {
+        netPill.textContent = 'neutro';
+        netPill.className = 'pill warn';
+      }
+    }
+
+    // ===== Chart (Canvas) =====
+    function renderChart(list){
+      // sum only OUT by category
+      const map = new Map();
+      for(const t of list){
+        if(t.type !== 'out') continue;
+        map.set(t.category, (map.get(t.category)||0) + t.amount);
+      }
+      const data = [...map.entries()]
+        .sort((a,b)=> b[1]-a[1])
+        .slice(0, 8);
+
+      chartPill.textContent = `${data.length} categorias`;
+
+      // legend
+      legend.innerHTML = '';
+      for(const [cat, val] of data){
+        const div = document.createElement('div');
+        div.className = 'tag';
+        div.innerHTML = `<span class="dot" style="background:${catColor(cat)}"></span>${escapeHtml(cat)} <span class="mono" style="margin-left:6px; color:var(--text); font-weight:800;">${brl.format(val)}</span>`;
+        legend.appendChild(div);
+      }
+
+      // canvas sizing for crisp
+      const ratio = window.devicePixelRatio || 1;
+      const cssW = canvas.clientWidth;
+      const cssH = 220;
+      canvas.style.height = cssH + 'px';
+      canvas.width = Math.floor(cssW * ratio);
+      canvas.height = Math.floor(cssH * ratio);
+      ctx.setTransform(ratio,0,0,ratio,0,0);
+
+      // draw
+      ctx.clearRect(0,0,cssW,cssH);
+
+      // empty
+      if(!data.length){
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = 'rgba(255,255,255,.45)';
+        ctx.font = '600 13px system-ui';
+        ctx.fillText('Sem saídas no período selecionado.', 10, 22);
+        return;
+      }
+
+      const padL = 22, padR = 16, padT = 18, padB = 22;
+      const W = cssW - padL - padR;
+      const H = cssH - padT - padB;
+
+      const maxV = Math.max(...data.map(x=>x[1])) || 1;
+
+      // grid lines
+      ctx.strokeStyle = 'rgba(255,255,255,.07)';
+      ctx.lineWidth = 1;
+      for(let i=0;i<=4;i++){
+        const y = padT + (H * i/4);
+        ctx.beginPath();
+        ctx.moveTo(padL, y);
+        ctx.lineTo(padL + W, y);
+        ctx.stroke();
+      }
+
+      const barGap = 10;
+      const barW = (W - barGap*(data.length-1)) / data.length;
+
+      data.forEach(([cat, val], i)=>{
+        const x = padL + i*(barW + barGap);
+        const h = (val/maxV) * H;
+        const y = padT + (H - h);
+
+        // bar (solid color)
+        ctx.fillStyle = catColor(cat);
+        roundRect(ctx, x, y, barW, h, 10);
+        ctx.fill();
+
+        // label (truncate)
+        ctx.fillStyle = 'rgba(234,241,255,.85)';
+        ctx.font = '700 11px system-ui';
+        const label = cat.length > 10 ? cat.slice(0,10)+'…' : cat;
+        ctx.fillText(label, x, padT + H + 16);
+      });
+    }
+
+    function roundRect(ctx, x, y, w, h, r){
+      const rr = Math.min(r, w/2, h/2);
+      ctx.beginPath();
+      ctx.moveTo(x+rr, y);
+      ctx.arcTo(x+w, y, x+w, y+h, rr);
+      ctx.arcTo(x+w, y+h, x, y+h, rr);
+      ctx.arcTo(x, y+h, x, y, rr);
+      ctx.arcTo(x, y, x+w, y, rr);
+      ctx.closePath();
+    }
+
+    function catColor(name){
+      const c = state.categories.find(x=>x.name===name);
+      return c?.color || '#60a5fa';
+    }
+
+    function td(html, raw=false){
+      const el = document.createElement('td');
+      el.innerHTML = raw ? html : escapeHtml(html);
+      return el;
+    }
+
+    function escapeHtml(s){
+      return String(s)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#039;");
+    }
+
+    function iso(d){
+      const pad = n => String(n).padStart(2,'0');
+      return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+    }
+
+    // ===== Storage =====
+    function save(){
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+    function load(){
+      try{
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : null;
+      }catch(e){
+        return null;
+      }
+    }
+
+    // ===== Import / Export =====
+    function exportJSON(){
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `controle-financeiro-${todayISO()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast('Exportado.');
+    }
+
+    function importJSON(){
+      const file = fileImport.files?.[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const obj = JSON.parse(reader.result);
+          if(!obj || !Array.isArray(obj.txns) || !Array.isArray(obj.categories)){
+            throw new Error('Formato inválido');
+          }
+          state = obj;
+          save();
+          hydrateCategories();
+          resetForm();
+          render();
+          toast('Importado com sucesso.');
+        }catch(e){
+          toast('Falha ao importar JSON.');
+        } finally {
+          fileImport.value = '';
+        }
+      };
+      reader.readAsText(file);
+    }
+  </script>
+</body>
+</html>
